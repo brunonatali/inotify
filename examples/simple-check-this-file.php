@@ -22,13 +22,49 @@ $notify->add(__FILE__, IN_ATTRIB | IN_MODIFY | IN_ACCESS);
 
 $touchCounter = 3;
 $loopTimer = null;
-$loopTimer = $loop->addPeriodicTimer(5.0, function () use ($loop, $notify, &$touchCounter, &$loopTimer) {
-	\touch(__FILE__);
+$fileContent = null;
+$loopTimer = $loop->addPeriodicTimer(5.0, function () use ($loop, $notify, &$touchCounter, &$loopTimer, &$fileContent) {
+	switch ($touchCounter) {
+		case 1:
+			if ($fileContent)
+				@\file_put_contents(__FILE__, $fileContent);
+			else
+				\touch(__FILE__); // Just touch again
+			break;
+		case 2:
+			$fileContent = @\file_get_contents(__FILE__);
+			break;
+		case 3:
+			\touch(__FILE__);
+			break;
+		default:
+			$loop->cancelTimer($loopTimer);
+			$notify->remove(__FILE__);
+			$loop->futureTick(function () use ($loop) {
+				$loop->stop();
+			});
+		break;
+	}
 
 	if (!--$touchCounter) {
 		$loop->cancelTimer($loopTimer);
 		$notify->remove(__FILE__);
+		$loop->futureTick(function () use ($loop) {
+			$loop->stop();
+		});
 	}
+});
+
+$notify->on(IN_ATTRIB, function () {
+	var_dump("File (IN_ATTRIB) " . __FILE__ . " touched!");
+});
+
+$notify->on(IN_MODIFY, function () {
+	var_dump("File (IN_MODIFY) " . __FILE__ . " rewrited!");
+});
+
+$notify->on(IN_ACCESS, function () {
+	var_dump("File (IN_ACCESS) " . __FILE__ . " readed!");
 });
 
 $loop->run();

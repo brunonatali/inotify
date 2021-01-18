@@ -118,8 +118,8 @@ class Factory extends EventEmitter implements FactoryInterface
 
     public function stopAll(): void
     {
-        foreach ($this->watchingList as $item)
-            \inotify_rm_watch($this->mainResource, $item);
+        foreach ($this->watchingList as $index => $item)
+            \inotify_rm_watch($this->mainResource, $index);
     }
 
     public function getLastError(): string
