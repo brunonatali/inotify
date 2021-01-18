@@ -67,14 +67,21 @@ class Factory extends EventEmitter implements FactoryInterface
         }
     }
 
+    function __sleep()
+    {
+        $this->stopAll();
+        @\fclose($this->mainResource);
+    }
+
     /**
-     * Adds a file on a inotify watch instance
-     * 
-     * @param string $fileName File path and name to watch
-     * @param int $flags Mask events to rack
-     * 
-     * @return bool Returns false is something is wrong. Catch error by getLastError()
+     * [WARNING] Be advised that startup() could throw some exception if 
+     * reinitialization fails
     */
+    function __wakeup()
+    {
+        $this->startup();
+    }
+
     public function add(string $fileName, int $flags): bool
     {
         $myWatchName = \str_replace('/', '', $fileName);
@@ -94,12 +101,6 @@ class Factory extends EventEmitter implements FactoryInterface
         return false;
     }
 
-    /**
-     * Removes filename from inotify watch instance
-     * 
-     * @param string $fileName File path and name
-     * @return bool Removed or not
-    */
     public function remove(string $fileName): bool
     {
         $myWatchName = \str_replace('/', '', $fileName);
@@ -110,11 +111,17 @@ class Factory extends EventEmitter implements FactoryInterface
         return \inotify_rm_watch($this->mainResource, $this->watchingList[$myWatchName]);
     }
 
-    /**
-     * Returns last unthrowed error message
-     * 
-     * @return string
-    */
+    public function getAll(): array
+    {
+        return $this->watchingList;
+    }
+
+    public function stopAll(): void
+    {
+        foreach ($this->watchingList as $item)
+            \inotify_rm_watch($this->mainResource, $item);
+    }
+
     public function getLastError(): string
     {
         return $this->lastError;
@@ -143,12 +150,12 @@ class Factory extends EventEmitter implements FactoryInterface
         }
     }
 
-    private function onReadEvent()
+    public function onReadEvent(): void
     {
         if (($events = \inotify_read($this->mainResource)) !== false) {
             foreach ($events as $event) {
-                var_dump($event);
-                // $this->emit($event['mask'], array($path . $event['name']));
+                //var_dump($event);
+                $this->emit($event['mask']);
             }
         }
     }

@@ -18,6 +18,17 @@ $loop = LoopFactory::create();
 
 $notify = new Factory($loop);
 
-$notify->add(__FILE__, IN_ATTRIB);
+$notify->add(__FILE__, IN_ATTRIB | IN_MODIFY | IN_ACCESS);
+
+$touchCounter = 3;
+$loopTimer = null;
+$loopTimer = $loop->addPeriodicTimer(5.0, function () use ($loop, $notify, &$touchCounter, &$loopTimer) {
+	\touch(__FILE__);
+
+	if (!--$touchCounter) {
+		$loop->cancelTimer($loopTimer);
+		$notify->remove(__FILE__);
+	}
+});
 
 $loop->run();
