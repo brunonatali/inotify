@@ -77,7 +77,9 @@ $notify->on(FLAG_NAME, function () {
 	// Do some stuff
 });
 ```
-After registered, when watcher fires a event program will call your function. Ex.
+If you plan to get noticed when any mask was triggered, use "all" (lowercase) as FLAG_NAME.  
+  
+After registered, when watcher fires an event program will call your function. Ex.
 ```php
 $notify->add('/some/path/file.name', IN_ATTRIB | IN_MODIFY | IN_ACCESS);
 $notify->on(IN_ACCESS, function () {

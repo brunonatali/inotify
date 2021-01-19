@@ -157,6 +157,7 @@ class Factory extends EventEmitter implements FactoryInterface
                 //var_dump($event);
                 $this->emit($event['mask']);
             }
+            $this->emit($event['all']);
         }
     }
 
