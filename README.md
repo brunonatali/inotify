@@ -1,4 +1,4 @@
-# Install
+# Inotify
 
 Inotify is a filesystem monitor event based. This lib aim to be file change notification within PHP React.
 
